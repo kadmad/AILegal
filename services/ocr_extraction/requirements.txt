@@ -1,0 +1,7 @@
+boto3==1.37.28
+pytesseract==0.3.13
+python-dotenv==1.1.0
+confluent_kafka==2.9.0
+opencv-python==4.11.0.86
+pdf2image==1.17.0
+Pillow==11.1.0

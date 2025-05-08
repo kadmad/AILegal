@@ -1,0 +1,97 @@
+services:
+  gateway:
+    build: ./services/gateway
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./services/gateway/.env
+    depends_on:
+      - kafka
+      - minio
+      - kafka-ui
+
+    networks:
+      - ailegal-net
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.2.1
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+    networks:
+      - ailegal-net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.2.1
+    container_name: ailegal-kafka-1
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092"
+    networks:
+      - ailegal-net
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+
+    networks:
+      - ailegal-net
+
+  # docker-compose.yml snippet
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - 8080:8080
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
+    depends_on:
+      - kafka
+
+    networks:
+      - ailegal-net
+
+  ocr_extraction:
+    build:
+      context: ./services/ocr_extraction
+    env_file:
+      - ./services/ocr_extraction/.env
+    depends_on:
+      - kafka
+    networks:
+      - ailegal-net
+
+  summary:
+    build:
+      context: ./services/summary
+    env_file:
+      - ./services/summary/.env
+    depends_on:
+      - kafka
+    networks:
+      - ailegal-net
+
+volumes:
+  minio_data:
+
+networks:
+  ailegal-net:
+    driver: bridge
