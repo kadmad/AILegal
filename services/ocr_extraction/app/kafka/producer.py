@@ -24,6 +24,11 @@ def send_to_topic(topic: str, message: dict) -> None:
     Args:
         topic: The Kafka topic name to publish to (e.g. ``"extracted-texts"``).
         message: A JSON-serialisable dictionary to send as the message value.
+
+    # TODO: Replace producer.produce() + producer.flush() with redis.xadd()
+    # on the corresponding Redis Stream. The ``topic`` parameter maps directly
+    # to a Redis stream name (e.g. redis.xadd("extracted-texts", message)).
+    # Remove the module-level confluent-kafka Producer singleton.
     """
     producer.produce(topic, json.dumps(message).encode('utf-8'))
     producer.flush()

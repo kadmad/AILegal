@@ -7,6 +7,11 @@ where containers start concurrently).
 
 The producer instance is held as a module-level singleton and managed via
 the FastAPI lifespan events defined in ``main.py``.
+
+# TODO: Replace Kafka with Redis Streams. This entire module should be
+# rewritten to use aioredis (async Redis client). The AIOKafkaProducer
+# singleton should be replaced with an aioredis connection pool, and
+# messages should be published via redis.xadd() to the appropriate stream.
 """
 
 from aiokafka import AIOKafkaProducer
@@ -30,6 +35,10 @@ async def init_kafka() -> None:
 
     Raises:
         RuntimeError: If Kafka cannot be reached after all 10 retries.
+
+    # TODO: Replace with Redis connection pool initialisation using aioredis.
+    # e.g. redis_pool = await aioredis.from_url("redis://redis:6379")
+    # Remove retry logic specific to Kafka broker readiness.
     """
     global producer
     producer = AIOKafkaProducer(bootstrap_servers='kafka:9092')
@@ -55,6 +64,10 @@ async def send_to_kafka(data: dict) -> None:
     Args:
         data: A dictionary that will be JSON-encoded and sent as the message
               value.  Must be JSON-serialisable.
+
+    # TODO: Replace producer.send_and_wait() with redis.xadd() on the
+    # corresponding Redis Stream (e.g. "uploaded-files" stream).
+    # e.g. await redis.xadd("uploaded-files", data)
     """
     await producer.send_and_wait(config.KAFKA_TOPIC, json.dumps(data).encode('utf-8'))
 
@@ -65,5 +78,8 @@ async def close_kafka() -> None:
 
     Flushes any buffered messages and closes the underlying network connection.
     Should be called during application shutdown.
+
+    # TODO: Replace with Redis connection pool teardown using aioredis.
+    # e.g. await redis_pool.close()
     """
     await producer.stop()
