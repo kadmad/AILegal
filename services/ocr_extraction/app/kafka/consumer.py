@@ -9,6 +9,11 @@ Consumer configuration notes:
     so each message is processed by exactly one worker.
   - ``auto.offset.reset: earliest``  — on first start (or after an offset reset)
     consume from the beginning of the topic so no messages are missed.
+
+# TODO: Replace Kafka consumer with a Redis Streams consumer group using
+# redis-py (or aioredis for async). The module-level Consumer and subscribe()
+# call should be replaced with XGROUP CREATE on the "uploaded-files" stream
+# and reads performed via XREADGROUP in the listen() loop.
 """
 
 from confluent_kafka import Consumer
@@ -42,6 +47,12 @@ def listen(callback) -> None:
     Args:
         callback: A callable that accepts a single ``dict`` argument.  Called
                   once for every successfully decoded Kafka message.
+
+    # TODO: Replace the consumer.poll(1.0) loop with a Redis Streams
+    # XREADGROUP call on the "uploaded-files" stream using the "ocr_group"
+    # consumer group. Use redis.xreadgroup("ocr_group", consumer_name,
+    # {"uploaded-files": ">"}, count=1, block=1000) and acknowledge each
+    # processed message with redis.xack().
     """
     while True:
         msg = consumer.poll(1.0)

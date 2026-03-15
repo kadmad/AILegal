@@ -32,6 +32,13 @@ def listen(callback) -> None:
         callback: A callable that accepts a single ``str`` argument (the raw
                   JSON message value).  Called once per successfully received
                   Kafka message.
+
+    # TODO: Replace the blocking c.poll(1.0) loop with a Redis Streams
+    # consumer group using XREADGROUP on the "extracted-texts" stream.
+    # Create the consumer group "analysis-group" with XGROUP CREATE and
+    # read messages via redis.xreadgroup("analysis-group", consumer_name,
+    # {"extracted-texts": ">"}, count=1, block=1000). Acknowledge each
+    # processed message with redis.xack().
     """
     c = Consumer({
         'bootstrap.servers': KAFKA_BROKER,

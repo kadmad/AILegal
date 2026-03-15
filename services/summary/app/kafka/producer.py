@@ -26,6 +26,11 @@ def send_summary_to_kafka(payload: dict) -> None:
     Args:
         payload: A JSON-serialisable dictionary to publish as the message value.
                  Expected to contain at least ``filename`` and ``summary`` keys.
+
+    # TODO: Replace producer.produce() + producer.flush() with redis.xadd()
+    # on the "summary-texts" Redis Stream.
+    # e.g. redis.xadd("summary-texts", payload)
+    # Remove the module-level confluent-kafka Producer singleton.
     """
     producer.produce(SUMMARY_TOPIC, json.dumps(payload).encode("utf-8"))
     producer.flush()
