@@ -16,7 +16,7 @@ load_dotenv()
 S3_ENDPOINT = os.getenv("S3_ENDPOINT")          # e.g. "http://minio:9000"
 S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")      # MinIO root user
 S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")      # MinIO root password
-S3_BUCKET = os.getenv("S3_BUCKET")              # Target bucket name (e.g. "legal-docs")
+S3_BUCKET = os.getenv("S3_BUCKET")              # Target bucket name (e.g. "ailegal-docs")
 
 # Kafka broker and topic for uploaded-file events
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS")  # e.g. "kafka:9092"
