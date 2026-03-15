@@ -26,6 +26,12 @@ load_dotenv()
 # Initialise the S3/MinIO client.
 # Config(signature_version='s3v4') is required for MinIO — MinIO rejects the
 # legacy SigV2 algorithm used by some default boto3 configurations.
+# TODO (production): This service bypasses config.py and reads os.getenv() directly,
+#                    violating the project convention (see CLAUDE.md). Refactor to import
+#                    from app.config so all S3 settings are centralised.
+# TODO (production): Remove `endpoint_url` for AWS S3. For AWS, boto3 resolves the
+#                    correct endpoint automatically; setting it to None is safe but
+#                    the env var should not be set in production .env files.
 s3 = boto3.client(
     's3',
     aws_access_key_id=os.getenv("S3_ACCESS_KEY"),
@@ -58,6 +64,10 @@ def handle_uploaded_file(data: dict) -> None:
 
     bucket = os.getenv("S3_BUCKET")
     # Extract the object key by stripping the bucket prefix from the full URL
+    # TODO (production): Parsing the object key from the MinIO URL is fragile and will break
+    #                    for AWS virtual-hosted-style URLs (e.g. bucket.s3.region.amazonaws.com/key).
+    #                    Instead, publish the raw object key in the Kafka message from the gateway
+    #                    and read it directly here: key = data["object_key"]
     key = s3_url.split(f"{bucket}/")[-1]
 
     print('bucket: ', bucket)
