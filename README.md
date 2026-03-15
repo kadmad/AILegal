@@ -86,3 +86,4 @@ MIT License
 ---
 
 **Note:** Update `.env` files with your credentials and API keys before running.
+its leagal
