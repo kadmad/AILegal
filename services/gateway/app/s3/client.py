@@ -17,12 +17,19 @@ from app import config
 
 session = boto3.session.Session()
 
+<<<<<<< Updated upstream
 # Config(signature_version='s3v4') is required for MinIO compatibility.
 # MinIO does not accept the legacy SigV2 signing algorithm used by some
 # AWS-default boto3 configurations.
 s3_client = session.client(
     service_name='s3',
     endpoint_url=config.S3_ENDPOINT,
+=======
+# TODO: convert to AWS S3 for production — remove S3_ENDPOINT and switch to
+# IAM-role-based auth (no access key / secret key needed). Also update the
+# URL returned by upload_file_to_s3() to use a pre-signed URL or CloudFront.
+s3_kwargs = dict(
+>>>>>>> Stashed changes
     aws_access_key_id=config.S3_ACCESS_KEY,
     aws_secret_access_key=config.S3_SECRET_KEY,
     config=Config(signature_version='s3v4')
@@ -72,4 +79,6 @@ def ensure_bucket_exists(bucket_name: str) -> None:
 
 
 # Ensure the bucket exists before the application starts serving requests.
+# TODO: on AWS S3, bucket creation is typically a one-time infra step (Terraform/CDK).
+# Remove auto-creation here and rely on the pre-existing bucket.
 ensure_bucket_exists(config.S3_BUCKET)

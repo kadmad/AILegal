@@ -23,11 +23,21 @@ from ocr.extractor import extract_text_from_file
 
 load_dotenv()
 
+<<<<<<< Updated upstream
 # Initialise the S3/MinIO client.
 # Config(signature_version='s3v4') is required for MinIO — MinIO rejects the
 # legacy SigV2 algorithm used by some default boto3 configurations.
 s3 = boto3.client(
     's3',
+=======
+# Initialise the S3 client.
+# Config(signature_version='s3v4') is required for MinIO and is also safe for
+# real AWS S3.  S3_ENDPOINT is optional: set it for local MinIO dev (e.g.
+# "http://minio:9000"); leave it unset in production to connect to AWS S3.
+# TODO: convert to AWS S3 for production — remove S3_ENDPOINT override and
+# use IAM instance role credentials instead of explicit access/secret keys.
+_s3_kwargs = dict(
+>>>>>>> Stashed changes
     aws_access_key_id=os.getenv("S3_ACCESS_KEY"),
     aws_secret_access_key=os.getenv("S3_SECRET_KEY"),
     endpoint_url=os.getenv("S3_ENDPOINT"),  # MinIO endpoint, e.g. "http://minio:9000"
