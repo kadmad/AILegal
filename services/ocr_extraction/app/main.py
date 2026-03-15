@@ -1,3 +1,18 @@
+"""
+OCR Extraction Service — entry point.
+
+This service is a long-running Kafka consumer worker.  It listens on the
+"uploaded-files" topic, fetches each file from MinIO, runs OCR to extract
+text, and publishes the result to the "extracted-texts" topic for the
+summary service to consume.
+
+Pipeline per message:
+    Kafka (uploaded-files) → MinIO fetch → OCR → Kafka (extracted-texts)
+
+Run directly:
+    python main.py
+"""
+
 import os
 import boto3
 from dotenv import load_dotenv
@@ -8,20 +23,41 @@ from ocr.extractor import extract_text_from_file
 
 load_dotenv()
 
+# Initialise the S3/MinIO client.
+# Config(signature_version='s3v4') is required for MinIO — MinIO rejects the
+# legacy SigV2 algorithm used by some default boto3 configurations.
 s3 = boto3.client(
     's3',
     aws_access_key_id=os.getenv("S3_ACCESS_KEY"),
     aws_secret_access_key=os.getenv("S3_SECRET_KEY"),
-    endpoint_url=os.getenv("S3_ENDPOINT"),  # key line for MinIO!
-    config=Config(signature_version='s3v4')  # required for MinIO
+    endpoint_url=os.getenv("S3_ENDPOINT"),  # MinIO endpoint, e.g. "http://minio:9000"
+    config=Config(signature_version='s3v4')  # Required for MinIO SigV4 compatibility
 )
 
-def handle_uploaded_file(data):
+
+def handle_uploaded_file(data: dict) -> None:
+    """
+    Process a single "uploaded-files" Kafka message.
+
+    Steps:
+        1. Parse the S3 URL and bucket name to derive the object key.
+        2. Download the raw file bytes from MinIO.
+        3. Run OCR (PDF → page images → Tesseract, or image → Tesseract directly).
+        4. Publish ``{"filename": ..., "text": ...}`` to the "extracted-texts" topic.
+
+    Args:
+        data: Decoded Kafka message payload with keys:
+              - ``file_url`` (str): Full MinIO URL of the uploaded file.
+              - ``type`` (str): File extension — ``"pdf"`` or an image type
+                (``"png"``, ``"jpg"``, etc.).
+              - ``filename`` (str): Original filename, forwarded downstream.
+    """
     print('data: ', data)
     s3_url = data["file_url"]
-    file_type = data["type"]  # "pdf" or "image"
+    file_type = data["type"]  # "pdf" or an image extension
 
     bucket = os.getenv("S3_BUCKET")
+    # Extract the object key by stripping the bucket prefix from the full URL
     key = s3_url.split(f"{bucket}/")[-1]
 
     print('bucket: ', bucket)
@@ -36,6 +72,7 @@ def handle_uploaded_file(data):
         "filename": data["filename"],
         "text": extracted_text
     })
+
 
 if __name__ == "__main__":
     print("=== OCR Extraction Service ===")
