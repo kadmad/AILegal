@@ -10,31 +10,23 @@ Lifecycle:
     shutdown → gracefully stops the Kafka producer
 """
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.routes.upload import router
 from app.kafka.producer import init_kafka, close_kafka
 
-app = FastAPI()
 
-@app.on_event("startup")
-async def startup_event():
-    """
-    Called automatically when the FastAPI application starts.
-
-    Initialises the async Kafka producer and waits until a connection
-    is established (up to 10 retries with 5-second intervals).
-    Raises RuntimeError if Kafka remains unreachable after all retries.
-    """
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     await init_kafka()
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """
-    Called automatically when the FastAPI application shuts down.
-
-    Gracefully stops the Kafka producer, flushing any pending messages
-    and releasing the underlying network connection.
-    """
+    yield
     await close_kafka()
 
+
+app = FastAPI(lifespan=lifespan)
+
 app.include_router(router)
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
