@@ -1,4 +1,4 @@
-# AI Legal Document Processing Platform
+# AI Document Analysis Platform
 
 This project is a microservices-based platform for uploading, extracting, and summarizing legal and medical documents using OCR and LLMs. It uses FastAPI, Kafka, MinIO (S3-compatible), and OpenAI.
 
