@@ -1,13 +1,17 @@
 """
 Gateway Service — S3 / MinIO client.
 
-Creates a module-level boto3 S3 client configured to talk to a MinIO instance.
-The client is shared across requests for efficiency (boto3 clients are
-thread-safe for read operations and most upload operations).
+Creates a module-level boto3 S3 client configured to talk to either a MinIO
+instance (local dev) or real AWS S3 (production).  The client is shared across
+requests for efficiency (boto3 clients are thread-safe for read operations and
+most upload operations).
 
-MinIO requires the ``s3v4`` signature version — standard AWS clients default
-to ``s3`` (v2) which MinIO rejects, so ``Config(signature_version='s3v4')``
-is mandatory here.
+``Config(signature_version='s3v4')`` is required for MinIO compatibility.
+It is also safe and recommended for real AWS S3.
+
+``S3_ENDPOINT`` is optional.  Set it to your MinIO URL (e.g.
+``http://minio:9000``) for local development.  Leave it unset (or empty) in
+production so boto3 connects directly to AWS S3.
 """
 
 import boto3
@@ -17,16 +21,15 @@ from app import config
 
 session = boto3.session.Session()
 
-# Config(signature_version='s3v4') is required for MinIO compatibility.
-# MinIO does not accept the legacy SigV2 signing algorithm used by some
-# AWS-default boto3 configurations.
-s3_client = session.client(
-    service_name='s3',
-    endpoint_url=config.S3_ENDPOINT,
+s3_kwargs = dict(
     aws_access_key_id=config.S3_ACCESS_KEY,
     aws_secret_access_key=config.S3_SECRET_KEY,
     config=Config(signature_version='s3v4')
 )
+if config.S3_ENDPOINT:
+    s3_kwargs["endpoint_url"] = config.S3_ENDPOINT
+
+s3_client = session.client(service_name='s3', **s3_kwargs)
 
 
 def upload_file_to_s3(file, filename: str) -> str:
@@ -38,12 +41,15 @@ def upload_file_to_s3(file, filename: str) -> str:
         filename: The object key / filename to use inside the bucket.
 
     Returns:
-        str: The full URL of the stored object in the format
-             ``<S3_ENDPOINT>/<S3_BUCKET>/<filename>``.
+        str: The full URL of the stored object.  For MinIO/local dev this is
+             ``<S3_ENDPOINT>/<S3_BUCKET>/<filename>``; for real AWS S3 this is
+             ``https://<S3_BUCKET>.s3.amazonaws.com/<filename>``.
     """
     s3_client.upload_fileobj(file, config.S3_BUCKET, filename)
     print(filename.encode('utf-8'))
-    return f"{config.S3_ENDPOINT}/{config.S3_BUCKET}/{filename}"
+    if config.S3_ENDPOINT:
+        return f"{config.S3_ENDPOINT}/{config.S3_BUCKET}/{filename}"
+    return f"https://{config.S3_BUCKET}.s3.amazonaws.com/{filename}"
 
 
 def ensure_bucket_exists(bucket_name: str) -> None:
