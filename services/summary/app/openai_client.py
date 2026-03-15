@@ -2,7 +2,7 @@
 Summary Generation Service — OpenAI client.
 
 Wraps the OpenAI Chat Completions API to produce concise summaries of
-legal and medical documents extracted by the OCR service.
+AI Document Analysis and medical documents extracted by the OCR service.
 
 The system prompt instructs the model to act as a domain-aware summariser,
 which improves output quality for the specialised document types handled by
@@ -21,7 +21,7 @@ def summarize_text(text: str) -> str:
     Send ``text`` to OpenAI and return a concise summary.
 
     Uses the ``gpt-3.5-turbo`` chat model with a domain-specific system
-    prompt that primes the model for legal and medical document summarisation.
+    prompt that primes the model for AI Document Analysis and medical document summarisation.
 
     Args:
         text: The raw OCR-extracted text to summarise.
@@ -32,8 +32,8 @@ def summarize_text(text: str) -> str:
     chat_response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
-            # System prompt: establish the model's role as a legal/medical summariser
-            {"role": "system", "content": "You are a helpful assistant that summarizes legal and medical documents."},
+            # System prompt: establish the model's role as an AI Document Analysis/medical summariser
+            {"role": "system", "content": "You are a helpful assistant that summarizes AI Document Analysis and medical documents."},
             {"role": "user", "content": f"Summarize the following content:\n{text}"}
         ]
     )

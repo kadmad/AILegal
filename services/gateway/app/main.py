@@ -1,7 +1,7 @@
 """
 Gateway Service — FastAPI entry point.
 
-This service acts as the HTTP-facing front door for the AILegal platform.
+This service acts as the HTTP-facing front door for the AI Document Analysis platform.
 It accepts file uploads from clients, stores them in MinIO (S3-compatible),
 and publishes a message to Kafka so downstream services can begin processing.
 
