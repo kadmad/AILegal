@@ -2,6 +2,16 @@
 
 This project is a microservices-based platform for uploading, extracting, and summarizing legal and medical documents using OCR and LLMs. It uses FastAPI, Kafka, MinIO (S3-compatible), and OpenAI.
 
+## Project Overview
+
+- **Document Ingestion**: Upload legal and medical documents (PDF/images) via a REST API
+- **OCR Extraction**: Automatically extract text from uploaded files using Tesseract OCR
+- **AI Summarization**: Generate concise summaries of extracted text using OpenAI GPT
+- **Event-Driven Pipeline**: Kafka-based async messaging between services for scalable processing
+- **Cloud-Compatible Storage**: Files stored in MinIO, an S3-compatible object store
+- **Microservices Architecture**: Each concern (upload, OCR, summary) runs as an independent service
+- **Observability**: Kafka UI and MinIO Console for real-time monitoring of the pipeline
+
 ## Architecture
 
 - **gateway**: FastAPI service for file upload, S3 storage, and Kafka publishing.
