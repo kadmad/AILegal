@@ -11,7 +11,8 @@ import os
 
 load_dotenv()
 
-# MinIO / S3-compatible object storage settings
+# TODO: convert to AWS S3 for production — S3_ENDPOINT, S3_ACCESS_KEY, and
+# S3_SECRET_KEY are MinIO-only. On AWS, remove these and use IAM instance role.
 S3_ENDPOINT = os.getenv("S3_ENDPOINT")          # e.g. "http://minio:9000"
 S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")      # MinIO root user
 S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")      # MinIO root password

@@ -17,9 +17,15 @@ from app import config
 
 session = boto3.session.Session()
 
+<<<<<<< Updated upstream
 # Config(signature_version='s3v4') is required for MinIO compatibility.
 # MinIO does not accept the legacy SigV2 signing algorithm used by some
 # AWS-default boto3 configurations.
+=======
+# TODO: convert to AWS S3 for production — remove S3_ENDPOINT and switch to
+# IAM-role-based auth (no access key / secret key needed). Also update the
+# URL returned by upload_file_to_s3() to use a pre-signed URL or CloudFront.
+>>>>>>> Stashed changes
 s3_client = session.client(
     service_name='s3',
     endpoint_url=config.S3_ENDPOINT,
